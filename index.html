@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Теннисная игра</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
+        }
+        canvas {
+            border: 2px solid white;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const PADDLE_WIDTH = 10;
+        const PADDLE_HEIGHT = 100;
+        const BALL_SIZE = 20;
+        let leftPaddleY = canvas.height / 2 - PADDLE_HEIGHT / 2;
+        let rightPaddleY = canvas.height / 2 - PADDLE_HEIGHT / 2;
+        let ballX = canvas.width / 2;
+        let ballY = canvas.height / 2;
+        let ballSpeedX = 4;
+        let ballSpeedY = 4;
+        let leftScore = 0;
+        let rightScore = 0;
+
+        const paddleSpeed = 7;
+
+        // Отображение счета
+        function drawScore() {
+            ctx.font = "36px Arial";
+            ctx.fillStyle = "white";
+            ctx.fillText(leftScore, canvas.width / 4, 50);
+            ctx.fillText(rightScore, canvas.width * 3 / 4, 50);
+        }
+
+        // Отрисовка ракеток
+        function drawPaddles() {
+            ctx.fillStyle = "white";
+            ctx.fillRect(20, leftPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT);
+            ctx.fillRect(canvas.width - 30, rightPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT);
+        }
+
+        // Отрисовка мяча
+        function drawBall() {
+            ctx.fillStyle = "white";
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, BALL_SIZE / 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Движение мяча
+        function moveBall() {
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            // Отскок мяча от верхней и нижней стены
+            if (ballY <= 0 || ballY >= canvas.height) {
+                ballSpeedY = -ballSpeedY;
+            }
+
+            // Отскок мяча от ракеток
+            if (ballX <= 30 && ballY >= leftPaddleY && ballY <= leftPaddleY + PADDLE_HEIGHT ||
+                ballX >= canvas.width - 30 && ballY >= rightPaddleY && ballY <= rightPaddleY + PADDLE_HEIGHT) {
+                ballSpeedX = -ballSpeedX;
+            }
+
+            // Гол
+            if (ballX <= 0) {
+                rightScore++;
+                resetBall();
+            }
+            if (ballX >= canvas.width) {
+                leftScore++;
+                resetBall();
+            }
+        }
+
+        // Сброс мяча в центр
+        function resetBall() {
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballSpeedX = -ballSpeedX;
+            ballSpeedY = 4;
+        }
+
+        // Движение ракеток
+        function movePaddles() {
+            if (upPressed && rightPaddleY > 0) {
+                rightPaddleY -= paddleSpeed;
+            }
+            if (downPressed && rightPaddleY < canvas.height - PADDLE_HEIGHT) {
+                rightPaddleY += paddleSpeed;
+            }
+            if (wPressed && leftPaddleY > 0) {
+                leftPaddleY -= paddleSpeed;
+            }
+            if (sPressed && leftPaddleY < canvas.height - PADDLE_HEIGHT) {
+                leftPaddleY += paddleSpeed;
+            }
+        }
+
+        // Обработчик клавиш
+        let wPressed = false, sPressed = false, upPressed = false, downPressed = false;
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "w") wPressed = true;
+            if (event.key === "s") sPressed = true;
+            if (event.key === "ArrowUp") upPressed = true;
+            if (event.key === "ArrowDown") downPressed = true;
+        });
+
+        document.addEventListener("keyup", (event) => {
+            if (event.key === "w") wPressed = false;
+            if (event.key === "s") sPressed = false;
+            if (event.key === "ArrowUp") upPressed = false;
+            if (event.key === "ArrowDown") downPressed = false;
+        });
+
+        // Основной цикл игры
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            moveBall();
+            movePaddles();
+            drawPaddles();
+            drawBall();
+            drawScore();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
